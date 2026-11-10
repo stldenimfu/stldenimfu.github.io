@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>STL Fabric Directory</title>
+<meta name="theme-color" content="#22407e">
+<meta name="description" content="Fabric code library for Development, Dyeing, Weaving and Finishing.">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0} img{max-width:100%} [hidden]{display:none!important}
+
+/* Layout: top bar with Search / Add data tabs; search = list of fabric cards, detail = spec sheet with selvedge edge, photo gallery and four department panels */
+:root{
+  --bg:#eef1f6; --surface:#ffffff; --surface-2:#f6f8fb; --ink:#14213a; --muted:#5a6884;
+  --line:#d6dce8; --indigo:#22407e; --indigo-soft:#e2e9f6; --selvedge:#b3382f;
+  --ok:#2f7a4f; --ok-soft:#e1f1e7; --warn:#9a6a12; --warn-soft:#f7eedb;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0c1322; --surface:#141e35; --surface-2:#1a2641; --ink:#e5eaf4; --muted:#94a2bf;
+  --line:#28365a; --indigo:#93b2ef; --indigo-soft:#1f2f55; --selvedge:#e46a5f;
+  --ok:#7cc79a; --ok-soft:#173527; --warn:#e3b65c; --warn-soft:#3a2e14; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c1322; --surface:#141e35; --surface-2:#1a2641; --ink:#e5eaf4; --muted:#94a2bf;
+  --line:#28365a; --indigo:#93b2ef; --indigo-soft:#1f2f55; --selvedge:#e46a5f;
+  --ok:#7cc79a; --ok-soft:#173527; --warn:#e3b65c; --warn-soft:#3a2e14; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 48px}
+.wrap{max-width:1120px;margin:0 auto}
+h1,h2,h3{text-wrap:balance;margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--indigo);outline-offset:2px}
+
+header.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding-block:20px 16px}
+.brand{display:flex;align-items:baseline;gap:10px}
+.brand h1{font-family:var(--display);font-weight:700;font-size:30px;letter-spacing:.02em;text-transform:uppercase;color:var(--indigo)}
+.brand span{font-size:13px;color:var(--muted)}
+nav.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:4px}
+nav.tabs button{border:0;background:none;padding:8px 16px;border-radius:7px;font-weight:500;color:var(--muted)}
+nav.tabs button[aria-selected="true"]{background:var(--indigo);color:var(--surface)}
+
+.status{font-size:13px;color:var(--muted);min-height:20px;margin-bottom:8px}
+.status.err{color:var(--selvedge)}
+
+/* search */
+.searchbar{display:flex;gap:8px;flex-wrap:wrap}
+.searchbar input{flex:1 1 260px;min-width:0;font-family:var(--mono);font-size:18px;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.btn{border:1px solid var(--line);background:var(--surface);padding:10px 16px;border-radius:8px;font-weight:500}
+.btn.primary{background:var(--indigo);border-color:var(--indigo);color:var(--surface)}
+.btn.danger{color:var(--selvedge);border-color:var(--selvedge);background:none}
+.btn:disabled{opacity:.5;cursor:default}
+.meta-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin:18px 0 10px;font-size:13px;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.card{display:flex;flex-direction:column;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:0;overflow:hidden}
+.card:hover{border-color:var(--indigo)}
+.thumb{aspect-ratio:4/3;background:var(--indigo-soft);display:flex;align-items:center;justify-content:center;max-width:100%;overflow:hidden}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.twill{width:100%;height:100%;background:repeating-linear-gradient(135deg,var(--indigo-soft) 0 6px,var(--surface-2) 6px 9px)}
+.card .body{padding:12px 14px;display:grid;gap:6px}
+.code{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:.03em;line-height:1.1}
+.sub{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chips{display:flex;gap:4px;flex-wrap:wrap}
+.chip{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:2px 7px;border-radius:999px;background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+.chip.on{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.empty{border:1px dashed var(--line);border-radius:10px;padding:32px 20px;text-align:center;color:var(--muted);background:var(--surface)}
+.empty strong{display:block;color:var(--ink);font-size:17px;margin-bottom:4px}
+
+/* detail */
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.selvedge{height:8px;background:repeating-linear-gradient(90deg,var(--selvedge) 0 14px,var(--surface) 14px 18px)}
+.sheet-head{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;align-items:flex-start;padding:20px 22px 8px}
+.sheet-head .code{font-size:44px;color:var(--indigo)}
+.sheet-head .name{font-size:17px;margin-top:2px}
+.pill{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px;background:var(--warn-soft);color:var(--warn)}
+.pill.approved{background:var(--ok-soft);color:var(--ok)}
+.head-actions{display:flex;gap:8px;flex-wrap:wrap}
+.keys{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-top:14px}
+.key{padding:12px 22px;border-right:1px solid var(--line)}
+.key:last-child{border-right:0}
+.key .l{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.key .v{font-family:var(--mono);font-size:17px;font-variant-numeric:tabular-nums;font-weight:500}
+.key .u{font-size:12px;color:var(--muted);margin-left:3px;font-family:var(--body)}
+.sheet-main{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:22px;padding:22px}
+@media (max-width:820px){.sheet-main{grid-template-columns:1fr}}
+.gallery-main{aspect-ratio:1/1;border-radius:8px;overflow:hidden;background:var(--indigo-soft);display:flex;align-items:center;justify-content:center;max-width:100%}
+.gallery-main img{width:100%;height:100%;object-fit:cover;cursor:zoom-in}
+.gallery-main .noimg{color:var(--muted);font-size:13px;text-align:center;padding:16px}
+.cap{font-size:13px;color:var(--muted);margin-top:6px;min-height:20px}
+.thumbs{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.thumbs button{width:62px;height:62px;padding:0;border:2px solid transparent;border-radius:6px;overflow:hidden;background:var(--surface-2)}
+.thumbs button[aria-current="true"]{border-color:var(--indigo)}
+.thumbs img{width:100%;height:100%;object-fit:cover}
+.panels{display:grid;gap:14px}
+.panel{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.panel-h{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 14px;background:var(--surface-2);border-bottom:1px solid var(--line)}
+.panel-h h3{font-family:var(--display);font-weight:600;font-size:18px;letter-spacing:.06em;text-transform:uppercase}
+.panel-h .by{font-size:12px;color:var(--muted)}
+.linkbtn{border:0;background:none;color:var(--indigo);font-weight:600;font-size:13px;padding:2px 4px}
+dl.specs{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:0;margin:0}
+dl.specs div{padding:8px 14px;border-bottom:1px solid var(--line);min-width:0}
+dl.specs dt{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+dl.specs dd{margin:0;font-family:var(--mono);font-size:14px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+dl.specs div.wide{grid-column:1/-1}
+dl.specs div.wide dd{font-family:var(--body)}
+.panel .none{padding:14px;color:var(--muted);font-size:13px}
+.back{margin-bottom:12px}
+
+/* entry form */
+.form{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px 22px;display:grid;gap:18px}
+.depts{display:flex;gap:8px;flex-wrap:wrap}
+.depts button{border:1px solid var(--line);background:var(--surface-2);padding:9px 16px;border-radius:8px;font-family:var(--display);font-weight:600;font-size:17px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.depts button[aria-pressed="true"]{background:var(--indigo);border-color:var(--indigo);color:var(--surface)}
+.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.f{display:grid;gap:4px;min-width:0}
+.f.wide{grid-column:1/-1}
+.f label{font-size:12px;font-weight:600;color:var(--muted)}
+.f label .u{font-weight:400}
+.f input,.f select,.f textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:7px;background:var(--surface-2)}
+.f textarea{min-height:72px;resize:vertical}
+.codebox input{font-family:var(--mono);font-size:18px;text-transform:uppercase}
+.hint{font-size:13px;color:var(--muted)}
+.hint.found{color:var(--ok)}
+.section-h{font-family:var(--display);font-weight:600;font-size:17px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+.uploads{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.form-actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.confirm{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:14px;padding:10px 12px;border:1px solid var(--selvedge);border-radius:8px}
+
+.lightbox{position:fixed;inset:0;background:rgba(5,10,20,.88);display:flex;align-items:center;justify-content:center;z-index:50;padding:max(20px,env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-right,0px)) max(20px,env(safe-area-inset-bottom,0px)) max(20px,env(safe-area-inset-left,0px))}
+.lightbox img{max-width:100%;max-height:100%;border-radius:6px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--surface);padding:10px 18px;border-radius:8px;font-size:14px;z-index:60}
+
+.group-h{grid-column:1/-1;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--indigo);padding-top:6px;border-bottom:1px solid var(--line);padding-bottom:4px}
+.step{border:1px solid var(--line);border-radius:10px;background:var(--surface-2);overflow:hidden}
+.step-h{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--line)}
+.step-h .n{font-family:var(--display);font-weight:700;font-size:20px;color:var(--indigo);min-width:28px}
+.step-h select{padding:7px 10px;border:1px solid var(--line);border-radius:7px;background:var(--surface-2);font-weight:600}
+.step .fields{padding:14px}
+.step-tools{display:flex;gap:4px}
+.step-tools button{border:1px solid var(--line);background:var(--surface-2);border-radius:6px;padding:4px 9px;font-size:13px}
+.addstep{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.addstep select{padding:9px 11px;border:1px solid var(--line);border-radius:7px;background:var(--surface-2)}
+.steps{display:grid;gap:12px}
+.route{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:12px 14px;border-bottom:1px solid var(--line)}
+.route .r{font-family:var(--display);font-weight:600;font-size:15px;letter-spacing:.04em;text-transform:uppercase;padding:3px 10px;border-radius:6px;background:var(--indigo-soft);color:var(--indigo)}
+.route .arr{color:var(--muted)}
+.pstep{border-bottom:1px solid var(--line)}
+.pstep-h{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;padding:10px 14px 2px}
+.pstep-h b{font-family:var(--display);font-size:17px;letter-spacing:.04em;text-transform:uppercase}
+.pstep-h span{font-family:var(--mono);font-size:13px;color:var(--muted)}
+.subh{padding:8px 14px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--surface-2);border-bottom:1px solid var(--line)}
+
+/* ---- Denim theme ---- */
+:root{--denim:#23406f;--denim-deep:#172b4f;--thread:#c9853a;--patch:#7b4f33;--patch-2:#9a6a47;--patch-ink:#f4e6d2;--rivet:#b8833f}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--denim:#1d3560;--denim-deep:#0f1d38;--thread:#d9974a;--patch:#6e472f;--patch-2:#8a5d3f;--patch-ink:#f4e6d2;--rivet:#c99350}}
+:root[data-theme="dark"]{--denim:#1d3560;--denim-deep:#0f1d38;--thread:#d9974a;--patch:#6e472f;--patch-2:#8a5d3f;--patch-ink:#f4e6d2;--rivet:#c99350}
+.denim{background-color:var(--denim);
+  background-image:radial-gradient(ellipse at 22% 18%,rgba(255,255,255,.16),transparent 55%),
+    radial-gradient(ellipse at 85% 90%,rgba(0,0,0,.28),transparent 60%),
+    repeating-linear-gradient(135deg,rgba(255,255,255,.07) 0 2px,transparent 2px 5px),
+    repeating-linear-gradient(45deg,rgba(0,0,0,.12) 0 1px,transparent 1px 4px);}
+.hero{position:relative;border-radius:14px;margin-top:16px;padding:18px 20px;display:flex;flex-wrap:wrap;gap:14px 20px;align-items:center;justify-content:space-between;color:#eef3fb;overflow:hidden}
+.hero::after{content:"";position:absolute;inset:7px;border:2px dashed var(--thread);border-radius:9px;pointer-events:none;opacity:.9}
+.hero .tag{font-size:13px;color:#c9d6ee;max-width:34ch;margin-top:6px}
+.patch{position:relative;display:inline-grid;gap:0;padding:10px 22px 9px;border-radius:7px;color:var(--patch-ink);
+  background:linear-gradient(160deg,var(--patch-2),var(--patch));box-shadow:0 2px 0 rgba(0,0,0,.25),inset 0 0 0 1px rgba(0,0,0,.25);transform:rotate(-1.5deg);margin:0}
+.patch::before{content:"";position:absolute;inset:4px;border:1.5px dashed rgba(244,230,210,.75);border-radius:5px}
+.patch .big{font-family:var(--display);font-weight:700;font-size:34px;letter-spacing:.12em;line-height:1}
+.patch .small{font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:.28em;text-transform:uppercase}
+.rivet{position:absolute;width:9px;height:9px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#f3d29b,var(--rivet) 55%,#6b4518);box-shadow:0 1px 1px rgba(0,0,0,.4)}
+.rivet.l{left:-3px;top:-3px}.rivet.r{right:-3px;top:-3px}
+.hero nav.tabs{background:rgba(10,20,40,.35);border-color:rgba(255,255,255,.18);position:relative;z-index:1}
+.hero nav.tabs button{color:#d5def0}
+.hero nav.tabs button[aria-selected="true"]{background:var(--patch-ink);color:var(--denim-deep)}
+.stitch{border:0;border-top:2px dashed var(--thread);margin:4px 0;opacity:.8}
+.twill{position:relative;width:100%;height:100%}
+.thumb .pocket{width:46%;height:auto;max-width:120px;position:relative}
+.thumb.denim{display:flex;align-items:center;justify-content:center}
+.depts button[aria-pressed="true"]{border-color:var(--denim);color:#eef3fb;background-color:var(--denim);
+  background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.08) 0 2px,transparent 2px 5px);box-shadow:inset 0 0 0 2px var(--denim),inset 0 0 0 3px var(--thread)}
+.panel-h h3{border-bottom:2px dashed var(--thread);padding-bottom:1px}
+.empty .swatch{display:block;margin:0 auto 12px;width:120px;height:auto}
+.selvedge{height:10px;background:linear-gradient(var(--surface),var(--surface)) top/100% 2px no-repeat,repeating-linear-gradient(90deg,var(--selvedge) 0 14px,var(--surface) 14px 18px)}
+@media (prefers-reduced-motion:no-preference){.card{transition:border-color .15s}}
+
+a.btn{text-decoration:none;color:inherit;display:inline-flex;align-items:center}
+label.btn{cursor:pointer;display:inline-flex;align-items:center}
+nav.tabs[hidden]{display:none}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero denim">
+    <div>
+      <h1 class="patch" aria-label="STL Fabric Directory"><span class="rivet l"></span><span class="rivet r"></span><span class="big">STL</span><span class="small">Fabric Directory</span></h1>
+      <div class="tag">Every fabric code with its construction, dyeing, weaving and finishing data, in one place.</div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button id="tab-search" role="tab" aria-selected="true">Search</button>
+      <button id="tab-entry" role="tab" aria-selected="false">Add / update data</button>
+    </nav>
+  </header>
+  <div style="height:12px"></div>
+  <div id="status" class="status">Connecting to the library…</div>
+
+  <section id="view-login" hidden>
+    <form id="login" class="form" style="max-width:460px">
+      <div class="section-h" style="border:0;padding:0">Sign in to the library</div>
+      <p class="hint" style="margin:0">Ask your library admin for the team key. You only enter it once on this phone.</p>
+      <div class="f"><label for="l-name">Your name</label><input id="l-name" required placeholder="e.g. Rahim (Dyeing)"></div>
+      <div class="f"><label for="l-key">Team key</label><input id="l-key" type="password" required></div>
+      <div class="form-actions"><button class="btn primary" type="submit">Open library</button><span id="l-msg" class="hint"></span></div>
+    </form>
+  </section>
+
+  <section id="view-search" hidden>
+    <div class="searchbar">
+      <input id="q" type="search" placeholder="Type a fabric code, e.g. DN-24051" autocomplete="off" aria-label="Search fabric code">
+      <button id="refresh" class="btn">Refresh</button>
+      <a id="sheetlink" class="btn" target="_blank" rel="noopener" hidden>Open Google Sheet</a>
+    </div>
+    <div class="meta-row"><span id="count">—</span><span>Search matches code, name, buyer, shade, weave or process</span></div>
+    <div id="results" class="grid"></div>
+  </section>
+
+  <section id="view-detail" hidden></section>
+
+  <section id="view-entry" hidden>
+    <form id="entry" class="form" autocomplete="off">
+      <div>
+        <div class="section-h" style="border:0;padding:0;margin-bottom:8px">Department</div>
+        <div class="depts" id="depts"></div>
+      </div>
+      <div class="fields">
+        <div class="f codebox"><label for="f-code">Fabric code *</label><input id="f-code" list="codes" required placeholder="DN-24051"><datalist id="codes"></datalist></div>
+        <div class="f"><label for="f-enteredBy">Entered by</label><input id="f-enteredBy" placeholder="Your name"></div>
+        <div class="f" style="align-self:end"><span id="codehint" class="hint">New codes are created on save.</span></div>
+      </div>
+      <div class="section-h" id="dept-title">Development</div>
+      <div id="dept-fields"></div>
+      <div id="proc-editor" hidden></div>
+      <div class="section-h">Photos</div>
+      <div class="uploads">
+        <label class="btn" for="f-camera">Take photo</label><input id="f-camera" type="file" accept="image/*" capture="environment" hidden>
+        <label class="btn" for="f-photo">Choose from gallery</label><input id="f-photo" type="file" accept="image/png,image/jpeg,image/webp" multiple hidden>
+        <input id="f-caption" placeholder="Caption, e.g. Face side after wash" style="flex:1 1 220px;min-width:0;padding:9px 11px;border:1px solid var(--line);border-radius:7px;background:var(--surface-2)">
+      </div>
+      <div id="photohint" class="hint">No photos selected. Photos are tagged with the department you have selected.</div>
+      <div class="form-actions">
+        <button type="submit" class="btn primary" id="save">Save</button>
+        <button type="button" class="btn" id="view-after">Open spec sheet</button>
+        <span id="savemsg" class="hint"></span>
+      </div>
+    </form>
+    <p class="hint" style="margin-top:14px">To delete a code or a photo, remove its rows in the Google Sheet.</p>
+  </section>
+</div>
+<div id="lightbox" class="lightbox" hidden><img alt=""></div>
+<div id="toast" class="toast" hidden></div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
