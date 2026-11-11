@@ -436,7 +436,7 @@ $("#lightbox").onclick = () => $("#lightbox").hidden = true;
 function fieldHtml(id, def, v) {
   const [k, l, t, opts, ph, u] = def; v = v ?? "";
   const lab = `<label for="${id}">${esc(l)}${u ? ` <span class="u">(${u})</span>` : ""}</label>`;
-  if (t === "select") return `<div class="f">${lab}<select id="${id}" data-k="${k}"><option value="">—</option>${opts.map(o => `<option ${o === v ? "selected" : ""}>${esc(o)}</option>`).join("")}</select></div>`;
+  if (t === "select") return `<div class="f">${lab}<select id="${id}" data-k="${k}"><option value="">—</option>${opts.map(o => `<option ${String(o) === String(v) ? "selected" : ""}>${esc(o)}</option>`).join("")}</select></div>`;
   if (t === "multi") { const on = String(v || "").split(/\s*,\s*/).filter(Boolean);
     return `<fieldset class="f wide multi"><legend>${esc(l)}</legend><div class="checks">${opts.map(o => `<label class="chk"><input type="checkbox" data-mk="${k}" value="${esc(o)}" ${on.includes(o) ? "checked" : ""}><span>${esc(o)}</span></label>`).join("")}</div></fieldset>`; }
   if (t === "textarea") return `<div class="f wide">${lab}<textarea id="${id}" data-k="${k}" placeholder="${esc(ph || "")}">${esc(v)}</textarea></div>`;
@@ -483,27 +483,46 @@ function renderFields() {
   $("#photo-sec").hidden = dept !== "development"; renderPhotoSlots();
   $("#dept-fields").innerHTML = `<p class="hint" style="margin:0 0 10px">${esc(DEPT(dept).note)}</p>` + fieldsHtml(DEPT(dept).fields, existing, `fd-${dept}`);
   const pe = $("#proc-editor");
-  if (dept === "finishing") { steps = JSON.parse(JSON.stringify(existing.processes || [])); pe.hidden = false; renderSteps() } else { pe.hidden = true; pe.innerHTML = ""; steps = [] }
+  if (dept === "finishing") { steps = JSON.parse(JSON.stringify(existing.processes || [])); openStep = -1; pe.hidden = false; renderSteps() } else { pe.hidden = true; pe.innerHTML = ""; steps = [] }
   updateCodeHint();
 }
-function syncSteps() { $("#proc-editor").querySelectorAll(".step").forEach((el, i) => { if (steps[i]) Object.assign(steps[i], readFields(el.querySelector(".fields"))) }) }
+/* finishing steps: tap a process to add it (kept in running order); one step open at a time */
+let openStep = -1;
+function stepSummary(s) {
+  const fl = procFields(s.process).filter(([k]) => k !== "remarks");
+  return { text: [s.type, s.machine, filled(s.speed) ? `${s.speed} m/min` : "", s.date ? shortDate(s.date) : ""].filter(Boolean).join(" · "),
+    n: fl.filter(([k]) => filled(s[k])).length, total: fl.length };
+}
+function syncSteps() { $("#proc-editor").querySelectorAll(".step-body").forEach(el => { const i = +el.dataset.i; if (steps[i]) Object.assign(steps[i], readFields(el)) }) }
+function addStep(p) {
+  syncSteps();
+  const st = { process: p, machine: S.procMachine[p] || "", date: $("#f-jobdate").value || todayISO() };
+  const rank = x => { const r = S.processes.indexOf(x.process); return r < 0 ? 99 : r };
+  let at = steps.length; while (at > 0 && rank(steps[at - 1]) > rank(st)) at--;
+  steps.splice(at, 0, st); openStep = at; renderSteps(); focusStep(at);
+}
+function focusStep(i) { const el = $("#proc-editor").querySelectorAll(".step")[i]; if (el) el.scrollIntoView({ block: "nearest", behavior: "smooth" }) }
 function renderSteps() {
   const pe = $("#proc-editor");
-  pe.innerHTML = `<div class="section-h" style="margin-bottom:10px">Finishing processes, in running order</div>
-    <div class="steps">${steps.length ? steps.map((s, i) => `
-      <div class="step"><div class="step-h">
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span class="n">${i + 1}</span><span class="step-ic">${PICON(s.process)}</span>
-          <select data-proc="${i}" aria-label="Process for step ${i + 1}">${S.processes.map(p => `<option ${p === s.process ? "selected" : ""}>${p}</option>`).join("")}</select></div>
-        <div class="step-tools"><button type="button" data-up="${i}" ${i ? "" : "disabled"} aria-label="Move up">↑</button><button type="button" data-down="${i}" ${i < steps.length - 1 ? "" : "disabled"} aria-label="Move down">↓</button><button type="button" data-rm="${i}">Remove</button></div>
-      </div>${fieldsHtml(procFields(s.process), s, `ps-${i}`)}</div>`).join("")
-      : `<div class="empty" style="padding:18px">No processes yet. Add the first process this code runs through, e.g. Desize.</div>`}</div>
-    <div class="addstep" style="margin-top:12px"><select id="addproc" aria-label="Process to add">${S.processes.map(p => `<option>${p}</option>`).join("")}</select>
-      <button type="button" class="btn" id="addstep">+ Add process</button></div>`;
-  $("#addstep").onclick = () => { syncSteps(); const p = $("#addproc").value; steps.push({ process: p, machine: S.procMachine[p] || "" }); renderSteps() };
-  pe.querySelectorAll("[data-proc]").forEach(sel => sel.onchange = () => { syncSteps(); const s = steps[+sel.dataset.proc]; s.process = sel.value; if (!s.machine || S.finMachines.includes(s.machine)) s.machine = S.procMachine[sel.value] || ""; renderSteps() });
-  pe.querySelectorAll("[data-up]").forEach(b => b.onclick = () => { syncSteps(); const i = +b.dataset.up;[steps[i - 1], steps[i]] = [steps[i], steps[i - 1]]; renderSteps() });
-  pe.querySelectorAll("[data-down]").forEach(b => b.onclick = () => { syncSteps(); const i = +b.dataset.down;[steps[i + 1], steps[i]] = [steps[i], steps[i + 1]]; renderSteps() });
-  pe.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { syncSteps(); steps.splice(+b.dataset.rm, 1); renderSteps() });
+  const count = p => steps.filter(x => x.process === p).length;
+  pe.innerHTML = `<div class="section-h" style="margin-bottom:6px">Finishing processes</div>
+    <p class="hint" style="margin:0 0 10px">Tap each process this job went through. Steps are put in running order; tap a step to fill it in.</p>
+    <div class="padd">${S.processes.map(p => `<button type="button" class="pchip" data-add="${esc(p)}"><span class="pchip-ic">${PICON(p)}</span><span>${esc(p)}</span>${count(p) ? `<b>${count(p)}</b>` : ""}</button>`).join("")}</div>
+    <div class="steps">${steps.length ? steps.map((s, i) => { const sm = stepSummary(s), open = i === openStep;
+      return `<div class="step${open ? " open" : ""}">
+        <button type="button" class="step-h" data-tog="${i}" aria-expanded="${open}"><span class="n">${i + 1}</span><span class="step-ic">${PICON(s.process)}</span>
+          <span class="st-t"><b>${esc(procName(s))}</b><span>${esc(sm.text) || "Tap to fill in"}</span></span>
+          <span class="st-c${sm.n === sm.total ? " full" : ""}">${sm.n}/${sm.total}</span><span class="chev">${CHEV}</span></button>
+        ${open ? `<div class="step-body" data-i="${i}">${fieldsHtml(procFields(s.process), s, `ps-${i}`)}
+          <div class="step-foot"><button type="button" class="btn small primary" data-done="${i}">Done</button><span class="grow"></span>
+            <button type="button" class="btn small" data-up="${i}" ${i ? "" : "disabled"}>Move up</button><button type="button" class="btn small" data-down="${i}" ${i < steps.length - 1 ? "" : "disabled"}>Move down</button><button type="button" class="btn small danger" data-rm="${i}">Remove</button></div></div>` : ""}
+      </div>` }).join("") : `<div class="empty" style="padding:18px">No processes yet. Tap the processes above that this job went through.</div>`}</div>`;
+  pe.querySelectorAll("[data-add]").forEach(b => b.onclick = () => addStep(b.dataset.add));
+  pe.querySelectorAll("[data-tog]").forEach(b => b.onclick = () => { syncSteps(); const i = +b.dataset.tog; openStep = openStep === i ? -1 : i; renderSteps(); if (openStep >= 0) focusStep(openStep) });
+  pe.querySelectorAll("[data-done]").forEach(b => b.onclick = () => { syncSteps(); const i = +b.dataset.done; openStep = i + 1 < steps.length ? i + 1 : -1; renderSteps(); focusStep(openStep >= 0 ? openStep : i) });
+  pe.querySelectorAll("[data-up]").forEach(b => b.onclick = () => { syncSteps(); const i = +b.dataset.up;[steps[i - 1], steps[i]] = [steps[i], steps[i - 1]]; openStep = i - 1; renderSteps() });
+  pe.querySelectorAll("[data-down]").forEach(b => b.onclick = () => { syncSteps(); const i = +b.dataset.down;[steps[i + 1], steps[i]] = [steps[i], steps[i + 1]]; openStep = i + 1; renderSteps() });
+  pe.querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { syncSteps(); steps.splice(+b.dataset.rm, 1); openStep = -1; renderSteps() });
 }
 function updateCodeHint() {
   const v = $("#f-code").value.trim(); const h = $("#codehint");
