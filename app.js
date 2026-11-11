@@ -398,6 +398,7 @@ function renderDetail() {
     ${card("EPI × PPI", (filled(dv.epi) || filled(dv.ppi)) ? `${dv.epi ?? "?"} × ${dv.ppi ?? "?"}` : "")}${card("Shade / color", dy.shade || dv.color)}
     ${card("Finished width", dv.targetWidth, "inch")}${card("Finished weight", dv.targetWeight, "oz/yd²")}
     ${card("After wash shrinkage", (filled(dv.shrinkWarpT) || filled(dv.shrinkWeftT)) ? `${dv.shrinkWarpT ?? "?"} × ${dv.shrinkWeftT ?? "?"}` : "", "% warp × weft")}
+    ${card("After wash skew", dv.skewAW, "cm")}
     ${card("Elongation · growth · recovery", [dv.elongation, dv.growth, dv.recovery].some(filled) ? [dv.elongation, dv.growth, dv.recovery].map(v => filled(v) ? v : "?").join(" · ") : "", "%")}
     ${card("Finishing process", dv.finishRoute)}${card("Machine name", finMachineOf(f))}
   </div>
